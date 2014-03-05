@@ -2,6 +2,8 @@
 
 This page describes configuration (example) of the Nginx with Rails (through Unicorn).
 
+### Nginx
+
 **/etc/nginx/nginx.conf**
 
     worker_processes 8;
@@ -61,6 +63,12 @@ This page describes configuration (example) of the Nginx with Rails (through Uni
         proxy_redirect off;
       }
     }
+
+**reload**
+
+    /etc/init.d/nginx reload
+
+### Rails & Unicorn
 
 **config/unicorn.rb**
 
