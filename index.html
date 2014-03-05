@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Nginx Configuration For Rails : This page describes configuration (example) of the Nginx with Rails (through Unicorn)." />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Nginx Configuration For Rails</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/speranskydanil/nginx-conf-for-rails">View on GitHub</a>
+
+          <h1 id="project_title">Nginx Configuration For Rails</h1>
+          <h2 id="project_tagline">This page describes configuration (example) of the Nginx with Rails (through Unicorn).</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/speranskydanil/nginx-conf-for-rails/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/speranskydanil/nginx-conf-for-rails/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a name="nginx-configuration-for-rails" class="anchor" href="#nginx-configuration-for-rails"><span class="octicon octicon-link"></span></a>Nginx Configuration For Rails</h1>
+
+<p>This page describes configuration (example) of the Nginx with Rails (through Unicorn).</p>
+
+<h3>
+<a name="nginx" class="anchor" href="#nginx"><span class="octicon octicon-link"></span></a>Nginx</h3>
+
+<p><strong>/etc/nginx/nginx.conf</strong></p>
+
+<pre><code>worker_processes 8;
+
+user nobody nobody;
+
+events {
+  worker_connections 4096;
+  accept_mutex on;
+  use epoll;
+}
+
+http {
+  proxy_buffer_size 128k;
+  proxy_buffers 4 256k;
+  proxy_busy_buffers_size 256k;
+
+  client_max_body_size 40M;
+
+  include mime.types;
+  default_type application/octet-stream;
+
+  sendfile on;
+
+  gzip on;
+  gzip_vary on;
+  gzip_proxied any;
+  gzip_min_length 500;
+  gzip_http_version 1.0;
+  gzip_disable "MSIE [1-6]\.";
+  gzip_types text/plain text/xml text/css text/javascript application/x-javascript application/xml application/json;
+
+  server {
+    return 404;
+  }
+
+  include /etc/nginx/servers/*;
+}
+</code></pre>
+
+<p><strong>/etc/nginx/servers/example.conf</strong></p>
+
+<pre><code>server {
+  listen 80;
+  server_name dsperansky.info;
+  root /var/www/dsperansky.info/public;
+
+  location ~* ^/assets/ { expires 1d; }
+
+  location / {
+    try_files $uri @unicorn;
+  }
+
+  location @unicorn {
+    proxy_pass http://unix:/var/www/dsperansky.info/tmp/sockets/unicorn.sock;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Host $host;
+    proxy_redirect off;
+  }
+}
+</code></pre>
+
+<p><strong>reload</strong></p>
+
+<pre><code>/etc/init.d/nginx reload
+</code></pre>
+
+<h3>
+<a name="rails--unicorn" class="anchor" href="#rails--unicorn"><span class="octicon octicon-link"></span></a>Rails &amp; Unicorn</h3>
+
+<p><strong>config/unicorn.rb</strong></p>
+
+<pre><code>worker_processes 5
+
+dir = '/var/www/dlibrary.org/vsp/'
+
+working_directory dir
+
+preload_app true
+
+listen dir + 'tmp/sockets/unicorn.sock', :backlog =&gt; 64
+
+timeout 60
+
+pid dir + 'tmp/pids/unicorn.pid'
+
+stderr_path dir + 'log/unicorn.stderr.log'
+stdout_path dir + 'log/unicorn.stdout.log'
+
+before_fork do |server, worker|
+  defined?(ActiveRecord::Base) and ActiveRecord::Base.connection.disconnect!
+end
+
+after_fork do |server, worker|
+  defined?(ActiveRecord::Base) and ActiveRecord::Base.establish_connection
+end
+</code></pre>
+
+<p><strong>start</strong></p>
+
+<pre><code>test -s "tmp/pids/unicorn.pid" &amp;&amp; kill -QUIT `cat tmp/pids/unicorn.pid`
+</code></pre>
+
+<p><strong>stop</strong></p>
+
+<pre><code>bundle exec unicorn -c config/unicorn.rb -E production -D'
+</code></pre>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Nginx Configuration For Rails maintained by <a href="https://github.com/speranskydanil">speranskydanil</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
