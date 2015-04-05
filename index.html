@@ -29,65 +29,63 @@
 
 <p><strong>/etc/nginx/nginx.conf</strong></p>
 
-<pre><code>worker_processes 8;
+<div class="highlight highlight-nginx"><pre><span class="pl-k">worker_processes</span> <span class="pl-s">8</span>;
 
-user nobody nobody;
+<span class="pl-k">user</span> nobody nobody;
 
-events {
-  worker_connections 4096;
-  accept_mutex on;
-  use epoll;
+<span class="pl-k">events</span> {
+  <span class="pl-k">worker_connections</span> <span class="pl-s">4096</span>;
+  <span class="pl-k">accept_mutex</span><span class="pl-c1"> on</span>;
+  <span class="pl-k">use</span><span class="pl-c1"> epoll</span>;
 }
 
-http {
-  proxy_buffer_size 128k;
-  proxy_buffers 4 256k;
-  proxy_busy_buffers_size 256k;
+<span class="pl-k">http</span> {
+  <span class="pl-k">proxy_buffer_size</span> <span class="pl-c1">128k</span>;
+  <span class="pl-k">proxy_buffers</span> <span class="pl-s">4</span> <span class="pl-c1">256k</span>;
+  <span class="pl-k">proxy_busy_buffers_size</span> <span class="pl-c1">256k</span>;
 
-  client_max_body_size 40M;
+  <span class="pl-k">client_max_body_size</span> <span class="pl-c1">40M</span>;
 
-  include mime.types;
-  default_type application/octet-stream;
+  <span class="pl-k">include</span> mime.types;
+  <span class="pl-k">default_type</span> application/octet-stream;
 
-  sendfile on;
+  <span class="pl-k">sendfile</span><span class="pl-c1"> on</span>;
 
-  gzip on;
-  gzip_vary on;
-  gzip_proxied any;
-  gzip_min_length 500;
-  gzip_http_version 1.0;
-  gzip_disable "MSIE [1-6]\.";
-  gzip_types text/plain text/xml text/css text/javascript application/x-javascript application/xml application/json;
+  <span class="pl-k">gzip</span><span class="pl-c1"> on</span>;
+  <span class="pl-k">gzip_vary</span><span class="pl-c1"> on</span>;
+  <span class="pl-k">gzip_proxied</span> any;
+  <span class="pl-k">gzip_min_length</span> <span class="pl-s">500</span>;
+  <span class="pl-k">gzip_http_version</span> <span class="pl-c1">1.0</span>;
+  <span class="pl-k">gzip_disable</span> <span class="pl-s">"MSIE [1-6]\."</span>;
+  <span class="pl-k">gzip_types</span> text/plain text/xml text/css text/javascript application/x-javascript application/xml application/json;
 
-  server {
-    return 404;
+  <span class="pl-k">server</span> {
+    <span class="pl-c1">return</span> <span class="pl-s">404</span>;
   }
 
-  include /etc/nginx/servers/*;
-}
-</code></pre>
+  <span class="pl-k">include</span> /etc/nginx/servers/*;
+}</pre></div>
 
 <p><strong>/etc/nginx/servers/example.conf</strong></p>
 
-<pre><code>server {
-  listen 80;
-  server_name dsperansky.info;
-  root /var/www/dsperansky.info/public;
+<div class="highlight highlight-nginx"><pre><span class="pl-k">server</span> {
+  <span class="pl-k">listen</span> <span class="pl-s">80</span>;
+  <span class="pl-k">server_name</span> dsperansky.info;
+  <span class="pl-k">root</span> /var/www/dsperansky.info/public;
 
-  location ~* ^/assets/ { expires 1d; }
+  <span class="pl-k">location</span> ~* <span class="pl-sr">^/assets/ </span>{ <span class="pl-k">expires</span> <span class="pl-s">1d</span>; }
 
-  location / {
-    try_files $uri @unicorn;
+  <span class="pl-k">location</span> <span class="pl-en">/ </span>{
+    <span class="pl-k">try_files</span> <span class="pl-smi">$uri</span> @unicorn;
   }
 
-  location @unicorn {
-    proxy_pass http://unix:/var/www/dsperansky.info/tmp/sockets/unicorn.sock;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header Host $host;
-    proxy_redirect off;
+  <span class="pl-k">location</span> <span class="pl-en">@unicorn </span>{
+    <span class="pl-k">proxy_pass</span> http://unix:/var/www/dsperansky.info/tmp/sockets/unicorn.sock;
+    <span class="pl-k">proxy_set_header</span> X-Forwarded-For <span class="pl-smi">$proxy_add_x_forwarded_for</span>;
+    <span class="pl-k">proxy_set_header</span> Host <span class="pl-smi">$host</span>;
+    <span class="pl-k">proxy_redirect</span><span class="pl-c1"> off</span>;
   }
-}
-</code></pre>
+}</pre></div>
 
 <p><strong>reload</strong></p>
 
@@ -99,31 +97,30 @@ http {
 
 <p><strong>config/unicorn.rb</strong></p>
 
-<pre><code>worker_processes 5
+<div class="highlight highlight-ruby"><pre>worker_processes <span class="pl-c1">5</span>
 
-dir = '/var/www/dlibrary.org/vsp/'
+dir <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>/var/www/dlibrary.org/vsp/<span class="pl-pds">'</span></span>
 
 working_directory dir
 
-preload_app true
+preload_app <span class="pl-c1">true</span>
 
-listen dir + 'tmp/sockets/unicorn.sock', :backlog =&gt; 64
+listen dir <span class="pl-k">+</span> <span class="pl-s"><span class="pl-pds">'</span>tmp/sockets/unicorn.sock<span class="pl-pds">'</span></span>, <span class="pl-c1">:backlog</span> =&gt; <span class="pl-c1">64</span>
 
-timeout 60
+timeout <span class="pl-c1">60</span>
 
-pid dir + 'tmp/pids/unicorn.pid'
+pid dir <span class="pl-k">+</span> <span class="pl-s"><span class="pl-pds">'</span>tmp/pids/unicorn.pid<span class="pl-pds">'</span></span>
 
-stderr_path dir + 'log/unicorn.stderr.log'
-stdout_path dir + 'log/unicorn.stdout.log'
+stderr_path dir <span class="pl-k">+</span> <span class="pl-s"><span class="pl-pds">'</span>log/unicorn.stderr.log<span class="pl-pds">'</span></span>
+stdout_path dir <span class="pl-k">+</span> <span class="pl-s"><span class="pl-pds">'</span>log/unicorn.stdout.log<span class="pl-pds">'</span></span>
 
-before_fork do |server, worker|
-  defined?(ActiveRecord::Base) and ActiveRecord::Base.connection.disconnect!
-end
+before_fork <span class="pl-k">do </span>|<span class="pl-smi">server</span>, <span class="pl-smi">worker</span>|
+  <span class="pl-k">defined?</span>(<span class="pl-c1">ActiveRecord</span>::<span class="pl-c1">Base</span>) <span class="pl-k">and</span> <span class="pl-c1">ActiveRecord</span>::<span class="pl-c1">Base</span>.connection.disconnect!
+<span class="pl-k">end</span>
 
-after_fork do |server, worker|
-  defined?(ActiveRecord::Base) and ActiveRecord::Base.establish_connection
-end
-</code></pre>
+after_fork <span class="pl-k">do </span>|<span class="pl-smi">server</span>, <span class="pl-smi">worker</span>|
+  <span class="pl-k">defined?</span>(<span class="pl-c1">ActiveRecord</span>::<span class="pl-c1">Base</span>) <span class="pl-k">and</span> <span class="pl-c1">ActiveRecord</span>::<span class="pl-c1">Base</span>.establish_connection
+<span class="pl-k">end</span></pre></div>
 
 <p><strong>start</strong></p>
 
